@@ -2,7 +2,6 @@ package repositorios
 
 import (
 	"api/src/modelos"
-	
 	"database/sql"
 	"fmt"
 )
@@ -66,4 +65,46 @@ func (repositorio usuarios) Buscar(nomeOuNick string) ([]modelos.Usuario, error)
 	}
 
 	return usuarios, nil
+}
+
+func (repositorio usuarios) BuscarPorID(ID uint64) (modelos.Usuario, error){
+	linhas, err := repositorio.db.Query(
+		"select id, nome, email, senha, criadoEm from usuarios where id = ?",
+		ID,
+	)
+
+	if err != nil {
+		return modelos.Usuario{}, err
+	}
+	defer linhas.Close()
+
+	var usuario modelos.Usuario
+
+	if linhas.Next(){
+		if err = linhas.Scan(
+			&usuario.ID,
+			&usuario.Nome,
+			&usuario.Nick,
+			&usuario.Email,
+			&usuario.CriadoEm,
+		); err != nil{
+			return modelos.Usuario{}, err
+		}
+	}
+	return usuario, nil
+}
+
+func (repositorio usuarios) Atualiuzar(ID uint64, usuario modelos.Usuario) error{
+	statement, err := repositorio.db.Prepare("update usuarios set nome = ?, email = ?, where id = ?", )
+
+	if err != nil {
+		return err
+	}
+	defer statement.Close()
+
+	if _, err = statement.Exec(usuario.Nome, usuario.Nick, usuario.Email, ID); err != nil{
+		return err
+	}
+
+	return nil 
 }
